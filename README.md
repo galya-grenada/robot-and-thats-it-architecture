@@ -15,7 +15,6 @@
 ![C4 level 2](diagrams/c4-level2-containers-microservices.png)
 
 Исходник диаграммы: [`diagrams/c4-microservices.drawio`](diagrams/) (открывать в [draw.io](https://app.diagrams.net)).
-Файл `legacy-c4-monolith.drawio` — исходная монолитная версия до перевода на микросервисы.
 
 ## Главный сценарий: заказ → оплата → готовка → табло
 
