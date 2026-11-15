@@ -16,37 +16,6 @@
 
 Исходник диаграммы: [`diagrams/c4-microservices.drawio`](diagrams/) (открывать в [draw.io](https://app.diagrams.net)).
 
-## Главный сценарий: заказ → оплата → готовка → табло
-
-```mermaid
-sequenceDiagram
-    actor V as Посетитель
-    participant T as Terminal
-    participant G as API Gateway
-    participant O as Orders
-    participant K as Kafka
-    participant P as Payment
-    participant PS as Платёжный сервис
-    participant R as Robots
-    participant RB as Роботы
-    participant TS as Tableau Service
-    participant TB as Order Tableau
-
-    V->>T: Заказ
-    T->>G: Создать заказ (REST)
-    G->>O: Create Order (gRPC)
-    O-->>K: OrderCreated
-    K-->>P: OrderCreated
-    P->>PS: Create Payment (HTTPS)
-    PS->>P: Payment Result (HTTPS)
-    P-->>K: OrderPaid
-    K-->>O: OrderPaid (обновить статус)
-    K-->>R: OrderPaid
-    R->>RB: Cooking Order (HTTPS)
-    R-->>K: OrderReady
-    K-->>TS: OrderReady
-    TS->>TB: Статус «готов» (WSS)
-```
 
 ## Стек и протоколы
 
@@ -67,4 +36,3 @@ sequenceDiagram
 | [01. Компоненты](docs/01-components.md) | Люди, внешние системы, контейнеры: назначение и взаимодействия |
 | [02. Информационные потоки](docs/02-information-flows.md) | Источник, приёмник, данные, протокол |
 | [03. События Kafka](docs/03-kafka-events.md) | Кто публикует, кто читает, что внутри события |
-| [04. Архитектурные решения](docs/04-design-decisions.md) | Почему сделано именно так, принятые допущения |
