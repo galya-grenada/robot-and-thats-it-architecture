@@ -22,8 +22,8 @@
 |---|---|
 | Клиентские приложения → API Gateway | HTTPS/JSON (REST) |
 | Order Tableau ↔ API Gateway ↔ Tableau Service | WSS (WebSocket) |
-| API Gateway → сервисы | gRPC |
-| Сервис ↔ сервис (синхронно) | gRPC |
+| API Gateway → сервисы | HTTPS/JSON (REST) |
+| Сервис ↔ сервис (синхронно: оплата, запрос данных) | HTTPS/JSON (REST) |
 | Сервис ↔ сервис (события) | Apache Kafka |
 | Сервис → своя БД | JDBC (PostgreSQL) |
 | Сервис ↔ внешняя система | HTTPS/JSON (допущение, API внешних систем неизвестен) |

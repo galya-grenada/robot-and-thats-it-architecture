@@ -5,19 +5,23 @@
 
 | Событие | Публикует | Читают | Что в событии | Реакция |
 |---|---|---|---|---|
-| `OrderCreated` | Orders | Payment | ID заказа, состав, сумма | Запросить оплату |
+| `OrderPaid` | Payment | Robots, Clients | ID заказа, ID клиента, сумма | Robots: запросить состав у Orders и начать готовку; Clients: начислить бонусы |
 | `OrderCancelled` | Orders | Payment, Notification | ID заказа | Возврат; уведомление |
-| `OrderPaid` | Payment | Robots, Orders, Clients | ID заказа, сумма | Начать готовку; обновить статус; начислить бонусы |
-| `PaymentFailed` | Payment | Orders | ID заказа | Обновить статус |
 | `OrderReady` | Robots | Tableau Service, Notification, Orders | ID заказа | Показать на табло; уведомить; обновить статус |
 | `StockUpdated` | Robots | Supply | Ингредиент, количество | Сохранить остаток, при необходимости заказать на склад |
 | `RobotFailed` | Robots | Notification | Описание сбоя | Уведомить менеджера по гостеприимству |
 | `UserRegistered` | IAM | Clients, Notification | ID клиента, контакты | Создать профиль; приветствие |
 | `MenuUpdated` | Menu | Orders | Изменённые позиции и цены | Обновить копию цен |
 
+Оплата в Kafka не участвует: Orders вызывает Payment синхронно (`Pay Order`, REST) и получает результат в ответе.
+После успешной оплаты Payment публикует `OrderPaid` для остальных сервисов. В событиях только идентификаторы и ключевые значения;
+состав заказа Robots запрашивает у Orders (`Get Order`, REST).
+
 ## Цепочка главного сценария
 
 ```
-Orders --OrderCreated--> Payment --OrderPaid--> Robots --OrderReady--> Tableau Service, Notification
-                                         └─────> Orders (статус), Clients (бонусы)
+Orders --REST: Pay Order--> Payment --(результат в ответе)--> Orders --> клиент
+Payment --OrderPaid--> Robots, Clients
+Robots --REST: Get Order--> Orders              (состав заказа)
+Robots --OrderReady--> Tableau Service, Notification, Orders
 ```

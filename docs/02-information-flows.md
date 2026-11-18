@@ -27,11 +27,11 @@
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
-| C1 | API Gateway | IAM Service | Логин, проверка прав (Auth/Login) | gRPC |
-| C2 | API Gateway | Menu Service | Запрос меню (Get Menu), изменение меню (Update Menu) | gRPC |
-| C3 | API Gateway | Orders Service | Создание заказа (состав, сумма), отмена (ID заказа), статус заказа | gRPC |
-| C4 | API Gateway | Clients Service | Профиль посетителя (Get Profile) | gRPC |
-| C5 | API Gateway | Supply Service | Ручной заказ продукции (позиции, количество) | gRPC |
+| C1 | API Gateway | IAM Service | Логин, проверка прав (Auth/Login) | REST |
+| C2 | API Gateway | Menu Service | Запрос меню (Get Menu), изменение меню (Update Menu) | REST |
+| C3 | API Gateway | Orders Service | Создание заказа (состав, сумма), отмена (ID заказа), статус заказа; в ответе на создание результат оплаты | REST |
+| C4 | API Gateway | Clients Service | Профиль посетителя (Get Profile) | REST |
+| C5 | API Gateway | Supply Service | Ручной заказ продукции (позиции, количество) | REST |
 | C6 | API Gateway | Tableau Service | Подписка табло на статусы (Subscribe Status) | WSS |
 
 ## D. Событийный обмен через Kafka
@@ -40,44 +40,44 @@
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
-| D1 | Orders Service | Message Broker | `OrderCreated`: ID заказа, состав, сумма | Kafka |
-| D2 | Orders Service | Message Broker | `OrderCancelled`: ID заказа | Kafka |
-| D3 | Payment Service | Message Broker | `OrderPaid`, `PaymentFailed`: ID заказа, сумма, результат | Kafka |
-| D4 | Robots Service | Message Broker | `OrderReady`: ID заказа | Kafka |
-| D5 | Robots Service | Message Broker | `StockUpdated`: ингредиент, количество | Kafka |
-| D6 | Robots Service | Message Broker | `RobotFailed`: описание сбоя | Kafka |
-| D7 | IAM Service | Message Broker | `UserRegistered`: ID клиента, контакты | Kafka |
-| D8 | Menu Service | Message Broker | `MenuUpdated`: изменённые позиции и цены | Kafka |
+| D1 | Orders Service | Message Broker | `OrderCancelled`: ID заказа | Kafka |
+| D2 | Payment Service | Message Broker | `OrderPaid`: ID заказа, ID клиента, сумма | Kafka |
+| D3 | Robots Service | Message Broker | `OrderReady`: ID заказа | Kafka |
+| D4 | Robots Service | Message Broker | `StockUpdated`: ингредиент, количество | Kafka |
+| D5 | Robots Service | Message Broker | `RobotFailed`: описание сбоя | Kafka |
+| D6 | IAM Service | Message Broker | `UserRegistered`: ID клиента, контакты | Kafka |
+| D7 | Menu Service | Message Broker | `MenuUpdated`: изменённые позиции и цены | Kafka |
 
 Подписка (Kafka → сервис):
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
-| D9 | Message Broker | Payment Service | `OrderCreated`, `OrderCancelled` | Kafka |
-| D10 | Message Broker | Robots Service | `OrderPaid` | Kafka |
-| D11 | Message Broker | Orders Service | `OrderPaid`, `PaymentFailed`, `OrderReady`, `MenuUpdated` | Kafka |
-| D12 | Message Broker | Clients Service | `UserRegistered`, `OrderPaid` | Kafka |
-| D13 | Message Broker | Supply Service | `StockUpdated` | Kafka |
-| D14 | Message Broker | Tableau Service | `OrderReady` | Kafka |
-| D15 | Message Broker | Notification Service | `OrderReady`, `OrderCancelled`, `UserRegistered`, `RobotFailed` | Kafka |
+| D8 | Message Broker | Payment Service | `OrderCancelled` | Kafka |
+| D9 | Message Broker | Robots Service | `OrderPaid` | Kafka |
+| D10 | Message Broker | Orders Service | `OrderReady`, `MenuUpdated` | Kafka |
+| D11 | Message Broker | Clients Service | `UserRegistered`, `OrderPaid` | Kafka |
+| D12 | Message Broker | Supply Service | `StockUpdated` | Kafka |
+| D13 | Message Broker | Tableau Service | `OrderReady` | Kafka |
+| D14 | Message Broker | Notification Service | `OrderReady`, `OrderCancelled`, `UserRegistered`, `RobotFailed` | Kafka |
 
 ## E. Сервис → сервис (синхронно)
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
-| E1 | Notification Service | Clients Service | Контакты посетителя (Get Contacts) | gRPC |
-| E2 | Notification Service | IAM Service | Контакты сотрудника (Get Staff Contacts) | gRPC |
+| E1 | Orders Service | Payment Service | Оплата заказа (Pay Order): ID заказа, ID клиента, сумма; в ответе результат оплаты | REST |
+| E2 | Robots Service | Orders Service | Запрос заказа (Get Order): ID заказа; в ответе состав заказа | REST |
+| E3 | Notification Service | Clients Service | Контакты посетителя (Get Contacts) | REST |
+| E4 | Notification Service | IAM Service | Контакты сотрудника (Get Staff Contacts) | REST |
 
 ## F. Сервисы ↔ внешние системы
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
-| F1 | Payment Service | Платёжный сервис | Оплата и возврат (ID заказа, сумма) | HTTPS/JSON |
-| F2 | Платёжный сервис | Payment Service | Результат оплаты | HTTPS/JSON |
-| F3 | Robots Service | Роботы | Заказ на приготовление (состав заказа) | HTTPS/JSON |
-| F4 | Роботы | Robots Service | Остатки ингредиентов | HTTPS/JSON |
-| F5 | Supply Service | Склад | Заказ продукции (позиции, количество) | HTTPS/JSON |
-| F6 | Clients Service | Система лояльности | Данные посетителя, сумма заказа; в ответе баланс бонусов | HTTPS/JSON |
+| F1 | Payment Service | Платёжный сервис | Оплата и возврат (ID заказа, сумма); в ответе результат | HTTPS/JSON |
+| F2 | Robots Service | Роботы | Заказ на приготовление (Cook Order): состав заказа | HTTPS/JSON |
+| F3 | Роботы | Robots Service | Остатки ингредиентов (Push Stock) | HTTPS/JSON |
+| F4 | Supply Service | Склад | Заказ продукции (позиции, количество) | HTTPS/JSON |
+| F5 | Clients Service | Система лояльности | Данные посетителя, сумма заказа; в ответе баланс бонусов | HTTPS/JSON |
 
 ## G. Сервисы → базы данных
 

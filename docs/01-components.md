@@ -33,22 +33,22 @@
 
 | Контейнер | Технология | Назначение | Взаимодействует с |
 |---|---|---|---|
-| API Gateway | Spring Cloud Gateway | Единая точка входа: маршрутизация запросов, перевод REST в gRPC, проверка токена. Бизнес-логики не содержит | Клиентские приложения; IAM, Menu, Orders, Clients, Supply (gRPC); Tableau Service (WSS) |
+| API Gateway | Spring Cloud Gateway | Единая точка входа: маршрутизация запросов и проверка токена. Бизнес-логики не содержит | Клиентские приложения; IAM, Menu, Orders, Clients, Supply (REST); Tableau Service (WSS) |
 | Message Broker | Apache Kafka | Событийная шина между сервисами | Все сервисы, публикующие или читающие события |
 
 ## Микросервисы
 
 | Сервис | Технология | Назначение | Взаимодействует с (и для чего) | Своя БД |
 |---|---|---|---|---|
-| IAM Service | SpringBoot, Spring Security | Аутентификация и авторизация посетителей и персонала, роли и права | Gateway: вход; Notification: контакты сотрудников; Kafka: публикует `UserRegistered` | IAM DB |
+| IAM Service | SpringBoot, Spring Security | Аутентификация и авторизация посетителей и персонала, роли и права | Gateway: вход; Notification: контакты сотрудников (REST); Kafka: публикует `UserRegistered` | IAM DB |
 | Menu Service | SpringBoot | Хранение и выдача актуального меню, техкарт, правил скидок и акций | Gateway: выдача и правка меню; Kafka: публикует `MenuUpdated` | Menu DB |
-| Orders Service | SpringBoot | Создание, обработка и отмена заказов, хранение статуса | Gateway: создать, отменить, статус; Kafka: публикует `OrderCreated`, `OrderCancelled`, читает `OrderPaid`, `PaymentFailed`, `OrderReady`, `MenuUpdated` | Orders DB |
-| Clients Service | SpringBoot | Профили посетителей, контакты, обмен данными и бонусами с системой лояльности | Gateway: профиль; Notification: контакты; Kafka: читает `UserRegistered`, `OrderPaid`; Система лояльности | Clients DB |
-| Payment Service | SpringBoot | Обработка оплаты и возвратов через платёжный сервис | Kafka: читает `OrderCreated`, `OrderCancelled`, публикует `OrderPaid`, `PaymentFailed`; Платёжный сервис | Payment DB |
-| Robots Service | SpringBoot | Передача заказа роботам, приём остатков и статусов | Kafka: читает `OrderPaid`, публикует `OrderReady`, `StockUpdated`, `RobotFailed`; Роботы | нет (адаптер) |
+| Orders Service | SpringBoot | Создание, обработка и отмена заказов, хранение статуса | Gateway: создать, отменить, статус; Payment: оплата заказа (`Pay Order`, REST, результат в ответе); Robots: отдаёт состав заказа (`Get Order`); Kafka: публикует `OrderCancelled`, читает `OrderReady`, `MenuUpdated` | Orders DB |
+| Clients Service | SpringBoot | Профили посетителей, контакты, обмен данными и бонусами с системой лояльности | Gateway: профиль; Notification: контакты (REST); Kafka: читает `UserRegistered`, `OrderPaid`; Система лояльности | Clients DB |
+| Payment Service | SpringBoot | Обработка оплаты и возвратов через платёжный сервис | Orders: принимает `Pay Order` и сразу возвращает результат; Kafka: читает `OrderCancelled` (возврат), публикует `OrderPaid`; Платёжный сервис | Payment DB |
+| Robots Service | SpringBoot | Передача заказа роботам, приём остатков и статусов | Kafka: читает `OrderPaid`, публикует `OrderReady`, `StockUpdated`, `RobotFailed`; Orders: запрашивает состав заказа; Роботы | нет (адаптер) |
 | Supply Service | SpringBoot | Формирование и отправка заказа продукции на склад при нехватке запасов | Gateway: ручной заказ; Kafka: читает `StockUpdated`; Склад | Supply DB |
 | Tableau Service | Node.js / WSS | Управление табло выдачи: рассылает статус готовности | Kafka: читает `OrderReady`; Gateway: соединение с табло | нет |
-| Notification Service | Go | Формирование и отправка Push/SMS/E-mail посетителям и сотрудникам по событиям | Kafka: читает `OrderReady`, `OrderCancelled`, `UserRegistered`, `RobotFailed`; Clients, IAM: контакты | нет |
+| Notification Service | Go | Формирование и отправка Push/SMS/E-mail посетителям и сотрудникам по событиям | Kafka: читает `OrderReady`, `OrderCancelled`, `UserRegistered`, `RobotFailed`; Clients, IAM: контакты (REST) | нет |
 
 ## Базы данных
 
