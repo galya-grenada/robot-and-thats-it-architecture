@@ -36,29 +36,35 @@
 
 ## D. Событийный обмен через Kafka
 
-Публикация (сервис → Kafka):
+Публикация (в Kafka):
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
 | D1 | Orders Service | Message Broker | `OrderCancelled`: ID заказа | Kafka |
 | D2 | Payment Service | Message Broker | `OrderPaid`: ID заказа, ID клиента, сумма | Kafka |
-| D3 | Robots Service | Message Broker | `OrderReady`: ID заказа | Kafka |
-| D4 | Robots Service | Message Broker | `StockUpdated`: ингредиент, количество | Kafka |
+| D3 | Robots Service | Message Broker | `CookOrder`: ID заказа, состав (для Роботов) | Kafka |
+| D4 | Robots Service | Message Broker | `OrderReady`: ID заказа | Kafka |
 | D5 | Robots Service | Message Broker | `RobotFailed`: описание сбоя | Kafka |
-| D6 | IAM Service | Message Broker | `UserRegistered`: ID клиента, контакты | Kafka |
-| D7 | Menu Service | Message Broker | `MenuUpdated`: изменённые позиции и цены | Kafka |
+| D6 | Robots Service | Message Broker | `StockUpdated`: ингредиент, количество | Kafka |
+| D7 | Supply Service | Message Broker | `SupplyOrder`: позиции, количество (для Склада) | Kafka |
+| D8 | IAM Service | Message Broker | `UserRegistered`: ID клиента, контакты | Kafka |
+| D9 | Menu Service | Message Broker | `MenuUpdated`: изменённые позиции и цены | Kafka |
+| D10 | Роботы | Message Broker | `CookResult`: ID заказа, результат (готов или сбой) | Kafka |
+| D11 | Роботы | Message Broker | `StockReport`: ингредиент, количество | Kafka |
 
-Подписка (Kafka → сервис):
+Подписка (из Kafka):
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
-| D8 | Message Broker | Payment Service | `OrderCancelled` | Kafka |
-| D9 | Message Broker | Robots Service | `OrderPaid` | Kafka |
-| D10 | Message Broker | Orders Service | `OrderReady`, `MenuUpdated` | Kafka |
-| D11 | Message Broker | Clients Service | `UserRegistered`, `OrderPaid` | Kafka |
-| D12 | Message Broker | Supply Service | `StockUpdated` | Kafka |
-| D13 | Message Broker | Tableau Service | `OrderReady` | Kafka |
-| D14 | Message Broker | Notification Service | `OrderReady`, `OrderCancelled`, `UserRegistered`, `RobotFailed` | Kafka |
+| D12 | Message Broker | Payment Service | `OrderCancelled` | Kafka |
+| D13 | Message Broker | Robots Service | `OrderPaid`, `CookResult`, `StockReport` | Kafka |
+| D14 | Message Broker | Роботы | `CookOrder` | Kafka |
+| D15 | Message Broker | Orders Service | `OrderReady`, `MenuUpdated` | Kafka |
+| D16 | Message Broker | Clients Service | `UserRegistered`, `OrderPaid` | Kafka |
+| D17 | Message Broker | Supply Service | `StockUpdated` | Kafka |
+| D18 | Message Broker | Склад | `SupplyOrder` | Kafka |
+| D19 | Message Broker | Tableau Service | `OrderReady` | Kafka |
+| D20 | Message Broker | Notification Service | `OrderReady`, `OrderCancelled`, `UserRegistered`, `RobotFailed` | Kafka |
 
 ## E. Сервис → сервис (синхронно)
 
@@ -69,15 +75,14 @@
 | E3 | Notification Service | Clients Service | Контакты посетителя (Get Contacts) | REST |
 | E4 | Notification Service | IAM Service | Контакты сотрудника (Get Staff Contacts) | REST |
 
-## F. Сервисы ↔ внешние системы
+## F. Сервисы ↔ внешние системы по HTTPS/JSON
+
+Роботы и Склад работают только через Kafka (раздел D).
 
 | # | Источник | Приёмник | Информация | Протокол |
 |---|---|---|---|---|
 | F1 | Payment Service | Платёжный сервис | Оплата и возврат (ID заказа, сумма); в ответе результат | HTTPS/JSON |
-| F2 | Robots Service | Роботы | Заказ на приготовление (Cook Order): состав заказа | HTTPS/JSON |
-| F3 | Роботы | Robots Service | Остатки ингредиентов (Push Stock) | HTTPS/JSON |
-| F4 | Supply Service | Склад | Заказ продукции (позиции, количество) | HTTPS/JSON |
-| F5 | Clients Service | Система лояльности | Данные посетителя, сумма заказа; в ответе баланс бонусов | HTTPS/JSON |
+| F2 | Clients Service | Система лояльности | Данные посетителя, сумма заказа; в ответе баланс бонусов | HTTPS/JSON |
 
 ## G. Сервисы → базы данных
 
